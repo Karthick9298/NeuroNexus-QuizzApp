@@ -37,7 +37,7 @@ quiz-platform/
 bash
 Copy
 Edit
-git clone https://github.com/yourusername/quiz-platform.git
+git clone https://github.com/Karthick9298/NeuroNexus-QuizzApp.git
 cd quiz-platform
 2. Install backend dependencies
 bash
