@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Take Quiz</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h2>Select a Quiz</h2>
+  <select id="quiz-select"></select>
+  <button onclick="loadQuiz()">Load Quiz</button>
+
+  <form id="quiz-form" style="display:none;" onsubmit="submitQuiz(event)">
+    <h2 id="quiz-title"></h2>
+    <div id="quiz-questions"></div>
+    <button type="submit">Submit Answers</button>
+  </form>
+
+  <script>
+    let currentQuiz = null;
+
+    // Load quiz titles into dropdown
+    fetch('http://localhost:3000/api/quizzes')
+      .then(res => res.json())
+      .then(data => {
+        const select = document.getElementById('quiz-select');
+        data.forEach(quiz => {
+          const option = document.createElement('option');
+          option.value = quiz._id;
+          option.textContent = quiz.title;
+          select.appendChild(option);
+        });
+      });
+
+    // Load selected quiz
+    async function loadQuiz() {
+      const id = document.getElementById('quiz-select').value;
+      const res = await fetch(`http://localhost:3000/api/quizzes/${id}`);
+      currentQuiz = await res.json();
+
+      document.getElementById('quiz-title').textContent = currentQuiz.title;
+      const container = document.getElementById('quiz-questions');
+      container.innerHTML = '';
+
+      currentQuiz.questions.forEach((q, idx) => {
+        const html = `
+          <div class="question-block">
+            <p><strong>Q${idx + 1}:</strong> ${q.text}</p>
+            ${q.options.map((opt, i) => `
+              <label>
+                <input type="radio" name="q${idx}" value="${i}" required>
+                ${opt}
+              </label><br>
+            `).join('')}
+          </div>
+        `;
+        container.insertAdjacentHTML('beforeend', html);
+      });
+
+      document.getElementById('quiz-form').style.display = 'block';
+    }
+
+    function submitQuiz(e) {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      let score = 0;
+
+      currentQuiz.questions.forEach((q, i) => {
+        const userAns = parseInt(form.get(`q${i}`));
+        if (userAns === q.correctAnswer) {
+          score++;
+        }
+      });
+
+      alert(`Your Score: ${score} / ${currentQuiz.questions.length}`);
+    }
+  </script>
+</body>
+</html>
